@@ -519,6 +519,8 @@ const handleListConnectedAccounts = (params: {
   readonly rootOnly: boolean;
   readonly projectName: Option.Option<string>;
   readonly userId: Option.Option<string>;
+  /** See `runConnectedAccountsLink`'s `quiet`: an embedding caller owns stdout for the invocation. */
+  readonly quiet: boolean;
   readonly ui: TerminalUI;
   readonly clientSingleton: {
     readonly getFor: (params: {
@@ -614,13 +616,14 @@ const handleListConnectedAccounts = (params: {
 
     if (connectedAccounts.length === 0) {
       yield* params.ui.log.warn(`No active connected accounts found for "${toolkitSlug}".`);
-      yield* params.ui.output(
+      yield* quietableOutput(
+        params.ui,
+        params.quiet,
         JSON.stringify(
           { kind: LINK_PAYLOAD_KIND, toolkit: toolkitSlug, items: [], total: 0 },
           null,
           2
-        ),
-        { force: true }
+        )
       );
       return;
     }
@@ -629,7 +632,9 @@ const handleListConnectedAccounts = (params: {
       formatConnectedAccountsTable(connectedAccounts),
       `${toolkitSlug}: connected accounts`
     );
-    yield* params.ui.output(
+    yield* quietableOutput(
+      params.ui,
+      params.quiet,
       JSON.stringify(
         {
           kind: LINK_PAYLOAD_KIND,
@@ -639,8 +644,7 @@ const handleListConnectedAccounts = (params: {
         },
         null,
         2
-      ),
-      { force: true }
+      )
     );
   });
 
@@ -651,6 +655,8 @@ const handleLegacyAuthConfigLink = (params: {
   readonly noWait: boolean;
   readonly noBrowser: boolean;
   readonly alias: Option.Option<string>;
+  /** See `runConnectedAccountsLink`'s `quiet`: an embedding caller owns stdout for the invocation. */
+  readonly quiet: boolean;
   readonly ui: TerminalUI;
   readonly clientSingleton: {
     readonly getFor: (params: {
@@ -777,7 +783,9 @@ const handleLegacyAuthConfigLink = (params: {
 
     if (params.noWait) {
       yield* showRedirectUrl(params.ui, redirectUrl, { manual: true });
-      yield* params.ui.output(
+      yield* quietableOutput(
+        params.ui,
+        params.quiet,
         JSON.stringify(
           {
             kind: LINK_PAYLOAD_KIND,
@@ -789,8 +797,7 @@ const handleLegacyAuthConfigLink = (params: {
           },
           null,
           2
-        ),
-        { force: true }
+        )
       );
       return;
     }
@@ -800,7 +807,8 @@ const handleLegacyAuthConfigLink = (params: {
       client,
       connectedAccountId,
       redirectUrl,
-      params.noBrowser
+      params.noBrowser,
+      params.quiet
     );
   });
 
@@ -1066,6 +1074,7 @@ export const runConnectedAccountsLink = (params: {
         rootOnly: params.rootOnly,
         projectName: params.projectName,
         userId: params.userId,
+        quiet,
         ui,
         clientSingleton,
         projectContext,
@@ -1082,6 +1091,7 @@ export const runConnectedAccountsLink = (params: {
         noWait: params.noWait,
         noBrowser: params.noBrowser,
         alias: params.alias,
+        quiet,
         ui,
         clientSingleton,
         projectContext,
