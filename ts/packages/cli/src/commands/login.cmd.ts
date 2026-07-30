@@ -14,6 +14,7 @@ import { ComposioUserContext } from 'src/services/user-context';
 import { TerminalUI } from 'src/services/terminal-ui';
 import { commandHintStep } from 'src/services/command-hints';
 import { runOrgSelection } from 'src/effects/select-org-project';
+import { linkAnalyticsIdentityForOrg } from 'src/effects/link-analytics-identity';
 import { setupCacheDir } from 'src/effects/setup-cache-dir';
 import { primeConsumerConnectedToolkitsCacheInBackground } from 'src/services/consumer-short-term-cache';
 import { inferSkillReleaseChannel, installSkillSafe } from 'src/effects/install-skill';
@@ -364,6 +365,15 @@ const directLogin = (params: { userApiKey: string; org?: string }) =>
       : Option.getOrUndefined(ctx.data.testUserId);
 
     yield* ctx.login(params.userApiKey, selectedOrg.id, testUserId);
+    yield* linkAnalyticsIdentityForOrg({
+      apiKey: params.userApiKey,
+      baseURL: ctx.data.baseURL,
+      orgId: selectedOrg.id,
+      knownIdentity: {
+        orgId: sessionInfo.project.org.id,
+        orgMemberId: sessionInfo.org_member.id,
+      },
+    });
     yield* primeConsumerConnectedToolkitsCacheInBackground({
       orgId: selectedOrg.id,
     });
@@ -391,6 +401,8 @@ const storeCredentials = (params: {
   skipHints?: boolean;
   /** When true, skip JSON output (emitted later after org picker with final selection). */
   skipOutput?: boolean;
+  /** When true, wait to link analytics until the org picker has made its final selection. */
+  deferAnalyticsIdentity?: boolean;
 }) =>
   Effect.gen(function* () {
     const ctx = yield* ComposioUserContext;
@@ -403,6 +415,7 @@ const storeCredentials = (params: {
       fallbackEmail,
       skipHints = false,
       skipOutput = false,
+      deferAnalyticsIdentity = false,
     } = params;
 
     // Call session/info to enrich the login with org/project metadata.
@@ -443,6 +456,20 @@ const storeCredentials = (params: {
     }
 
     yield* ctx.login(uakApiKey, orgId, testUserId);
+    // Linked only after the credential persists, so stitching cannot outlive a failed login.
+    if (!deferAnalyticsIdentity) {
+      yield* linkAnalyticsIdentityForOrg({
+        apiKey: uakApiKey,
+        baseURL,
+        orgId,
+        knownIdentity: sessionInfo
+          ? {
+              orgId: sessionInfo.project.org.id,
+              orgMemberId: sessionInfo.org_member.id,
+            }
+          : undefined,
+      });
+    }
     yield* primeConsumerConnectedToolkitsCacheInBackground({
       orgId,
     });
@@ -561,6 +588,7 @@ const loginWithKey = (params: {
       fallbackEmail: linkedSession.account.email,
       skipHints: willRunPicker,
       skipOutput: true,
+      deferAnalyticsIdentity: willRunPicker,
     });
 
     if (willRunPicker) {
@@ -590,6 +618,15 @@ const loginWithKey = (params: {
       }
       const finalOrgId = result?.id ?? xOrgId;
       const finalOrgName = result?.name ?? uakSessionInfo.project.org.name ?? '';
+      yield* linkAnalyticsIdentityForOrg({
+        apiKey: uakApiKey,
+        baseURL: ctx.data.baseURL,
+        orgId: finalOrgId,
+        knownIdentity: {
+          orgId: uakSessionInfo.project.org.id,
+          orgMemberId: uakSessionInfo.org_member.id,
+        },
+      });
       yield* emitLoginComplete({
         email: linkedSession.account.email ?? undefined,
         orgId: finalOrgId,
@@ -799,6 +836,7 @@ export const browserLogin = (params: {
       fallbackEmail: linkedSession.account.email,
       skipHints: willRunPicker || embedded,
       skipOutput: willRunPicker || embedded,
+      deferAnalyticsIdentity: willRunPicker,
     });
 
     let resolvedOrgId = xOrgId;
@@ -830,6 +868,18 @@ export const browserLogin = (params: {
       }
       resolvedOrgId = result?.id ?? xOrgId;
       const finalOrgName = result?.name ?? uakSessionInfo.project.org.name ?? '';
+      // The identity stitch runs even when embedded: it records *who* the selected org belongs to,
+      // and an onboard-driven login that skipped it would leave the pre-login events unmergeable.
+      // Only the completion event is suppressed, because onboard emits its own.
+      yield* linkAnalyticsIdentityForOrg({
+        apiKey: uakApiKey,
+        baseURL: ctx.data.baseURL,
+        orgId: resolvedOrgId,
+        knownIdentity: {
+          orgId: uakSessionInfo.project.org.id,
+          orgMemberId: uakSessionInfo.org_member.id,
+        },
+      });
       if (!embedded) {
         yield* emitLoginComplete({
           email: linkedSession.account.email ?? undefined,
