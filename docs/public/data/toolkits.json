@@ -8063,7 +8063,7 @@
     ],
     "toolCount": 305,
     "triggerCount": 5,
-    "version": "20260724_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "OUTLOOK_ACCEPT_EVENT",
@@ -12505,7 +12505,7 @@
     ],
     "toolCount": 47,
     "triggerCount": 12,
-    "version": "20260724_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "LINEAR_ARCHIVE_ISSUE",
@@ -12844,7 +12844,7 @@
                 "type": "string",
                 "description": "Scopes to request from the user, comma separated",
                 "required": false,
-                "default": "admin,read,write,issues:create,comments:create"
+                "default": "read,write,issues:create,comments:create"
               }
             ]
           },
@@ -24259,7 +24259,7 @@
     ],
     "toolCount": 169,
     "triggerCount": 0,
-    "version": "20260721_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "MICROSOFT_TEAMS_ADD_CHAT_MEMBER",
@@ -26234,9 +26234,6 @@
       "API_KEY",
       "OAUTH2",
       "S2S_OAUTH2"
-    ],
-    "composioManagedAuthSchemes": [
-      "OAUTH2"
     ],
     "toolCount": 407,
     "triggerCount": 0,
@@ -28812,7 +28809,7 @@
     ],
     "toolCount": 83,
     "triggerCount": 9,
-    "version": "20260728_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "ONE_DRIVE_ADD_WORKBOOK_WORKSHEET",
@@ -32056,7 +32053,7 @@
     ],
     "toolCount": 223,
     "triggerCount": 7,
-    "version": "20260728_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "SALESFORCE_ACCOUNT_CREATION_WITH_CONTENT_TYPE_OPTION",
@@ -40442,7 +40439,7 @@
     ],
     "toolCount": 21,
     "triggerCount": 0,
-    "version": "20260721_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "BREVO_CREATE_A_COMPANY",
@@ -40590,7 +40587,7 @@
                 "type": "string",
                 "description": "Scopes to request from the user, comma separated",
                 "required": false,
-                "default": ""
+                "default": "account:read,contacts:read,contacts:write,crm:read,crm:write,campaigns.email:read,campaigns.email:write,campaigns.sms:read,campaigns.sms:write,transactional.email:read,transactional.email:write"
               }
             ]
           },
@@ -76713,7 +76710,7 @@
     ],
     "toolCount": 86,
     "triggerCount": 0,
-    "version": "20260721_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "NETSUITE_ASYNC_GET_JOB_STATUS",
@@ -77186,7 +77183,7 @@
                 "type": "string",
                 "description": "Scopes to request from the user, comma separated",
                 "required": false,
-                "default": "profile"
+                "default": "rest_webservices,restlets"
               }
             ]
           },
@@ -180929,6 +180926,191 @@
     ]
   },
   {
+    "slug": "gocardless_mcp",
+    "name": "GoCardless MCP",
+    "logo": "https://logos.composio.dev/api/gocardless_mcp",
+    "description": "Build GoCardless payment API integrations.",
+    "category": "payment processing",
+    "authSchemes": [
+      "DCR_OAUTH"
+    ],
+    "toolCount": 24,
+    "triggerCount": 0,
+    "version": "20260803_00",
+    "tools": [
+      {
+        "slug": "GOCARDLESS_MCP_CANCEL_MANDATE",
+        "name": "Cancel mandate",
+        "description": "Cancel a mandate. Also known as: stop a direct debit, revoke a mandate, cancel an authorisation.\n\nHIGH-BLAST-RADIUS operation — this also cancels everything attached to the mandate. Two-call pattern: first call with confirmed=false returns a preview enumerating what will be cancelled; second call with confirmed=true executes after the user has explicitly confirmed in their next message. DO NOT pass confirmed=true in the same turn as a preview.\n\nRequirements:\n- Mandate must be in a cancellable state: pending_customer_approval, pending_submission, submitted, or active. Mandates already cancelled, failed, expired, consumed, or blocked cannot be cancelled.\n- Cancellation is irreversible — once cancelled, the mandate cannot be reinstated and the payer would have to set up a new authorisation.\n\nCascading side effects (will happen automatically):\n- All active subscriptions on this mandate auto-cancel. No further scheduled payments will be created.\n- All pending payments on this mandate auto-cancel (pending_customer_approval, pending_submission). Already-submitted payments continue through the bank.\n- All cancellable instalment schedules on this mandate auto-cancel.\n- The bank authorisation is revoked where the scheme supports it (Frontier-enabled schemes). The payer's bank will no longer permit collections.\n\nThe preview enumerates active subscriptions and pending payments so the merchant can see the full blast radius before confirming.\n\nOne of mandate_id (single) or mandate_ids (bulk) must be provided.\n\nBulk cap: mandate_ids accepts up to 10 IDs per call.\n- If the user asks to cancel more than 10 mandates, do NOT call this tool multiple times to work around the cap. Instead: state the 10-per-call limit and ask the user to confirm a specific quantity to proceed with. Wait for their reply before proceeding.\n- When the requested count exceeds 10, process one batch at a time — preview and confirm the first batch, execute it, then preview and confirm the next batch. Do not preview subsequent batches before the previous one has been confirmed and created.\n\nRequires read_write scope."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_CANCEL_PAYMENT",
+        "name": "Cancel payment",
+        "description": "Cancel a payment before it is submitted to the bank.\n    Also known as: stop a payment, void a payment, withdraw a payment.\n\n    Two-call pattern: first call with confirmed=false returns a preview; second call with confirmed=true executes after the user has explicitly confirmed in their next message. DO NOT pass confirmed=true in the same turn as a preview. Requirements:\n  - Payment must be in a cancellable state: pending_customer_approval or pending_submission. Payments that are submitted, confirmed, paid_out, failed, cancelled, or charged_back cannot\n  be cancelled.\n  - Cancellation is irreversible — once cancelled, the payment cannot be reinstated.\n\n  Important side effects (or lack thereof):\n  - Cancelling a payment that belongs to a subscription does NOT cancel the subscription. The subscription will continue to generate future payments on its schedule. If the merchant\n  wants to stop future payments, the subscription must be cancelled separately.\n  - Cancellation does not affect the mandate; the mandate remains active.\n\n  One of payment_id (single) or payment_ids (bulk) must be provided.\n\n  Bulk cap: payment_ids accepts up to 10 IDs per call.\n  - If the user asks to cancel more than 10 payments, do NOT call this tool multiple times to work around the cap. Instead: state the 10-per-call limit and ask the user to confirm a specific quantity to proceed with. Wait for their reply before proceeding.\n  - When the requested count exceeds 10, process one batch at a time — preview and confirm the first batch, execute it, then preview and confirm the next batch. Do not preview subsequent batches before the previous one has been confirmed and created.\n\n  Requires read_write scope."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_CREATE_PAYMENT",
+        "name": "Create payment",
+        "description": "Create a one-off payment against an existing mandate.\n    Also known as: take a payment, charge a customer, collect a payment, debit a customer.\n\n    Two-call pattern: first call with confirmed=false returns a preview; second call with confirmed=true executes after the user\n  has explicitly confirmed in their next message. DO NOT pass confirmed=true in the same turn as a preview.\n\n  Requirements:\n  - Mandate must be in pending_submission, submitted, or active state. Inactive mandates (blocked, cancelled, expired, failed) will be rejected.\n  - Payment currency MUST match the mandate's currency.\n  - charge_date must respect the scheme's minimum working-days notice:\n    - Bacs: 3 working days (default), 1 working day (absolute minimum).\n    - SEPA Core, PAD, Autogiro, Betalingsservice: 1 working day.\n    - Faster Payments, ACH, BECS, BECS_NZ: 0 working days (same-day OK).\n    If charge_date is omitted, the mandate's next_possible_charge_date is used.\n  - If the mandate has payments_require_approval=true, the payment will land in pending_customer_approval and won't be submitted to the bank until the payer approves.\n\n  Bulk cap: count accepts up to 25 per call.\n  - If the user asks for a specific number ≤ 25, pass it directly.\n  - If the user asks for more than 25 (e.g. \"create 100 payments\"), do NOT call this tool multiple times to work around the cap. Instead: state the 25-per-call limit and ask the user to confirm a specific quantity to proceed with. Wait for their reply before proceeding.\n  - If multiple batches are needed, process ONE batch per user reply — this means one preview call, then one confirm call, then report and wait. Do not call this tool more than once per user reply even for previews. Never pre-load multiple previews across batches before asking for approval.\n\n  Requires read_write scope. Idempotency keys remain valid for 31 days."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_CREATE_PAYMENT_LINK",
+        "name": "Create payment link",
+        "description": "Create a Billing Request — a single-use GoCardless-hosted authorisation link for one payer.\n    Also known as: payment link, authorisation link, send a payment request.\n\n    Note: this tool creates a GoCardless-hosted payment page. CPP merchants building\n    their own payment UI should call the billing requests API with actions directly\n    rather than using this tool.\n\n    IMPORTANT: Any fixed payment amount on a Billing Request is collected via IBP (Instant Bank Pay)\n    only — faster_payments, pay_to, or sepa_credit_transfer. Direct Debit does NOT support\n    a one-off fixed amount within the BR flow itself.\n\n    If a merchant asks to collect a one-off payment and does not specify IBP, ask which they prefer:\n    - IBP (instant, settles in ~1 business day): use payment_only=true or the combined flow.\n    - Direct Debit (3–5 days for Bacs, etc.): use mandate-only (no amount), then call create_payment\n      once the mandate is active. This requires two steps — confirm the merchant is happy to wait.\n    Do NOT assume IBP. Always clarify before proceeding if the collection method is ambiguous.\n\n    Workflows (choose one):\n    - Mandate-only (DD setup, charge later via create_payment): scheme only, no amount.\n      Schemes: bacs, sepa_core, ach, pad, becs, becs_nz, autogiro, betalingsservice.\n    - Payment-only / IBP (instant one-off, no mandate): scheme + amount + currency + payment_only=true.\n      Schemes: faster_payments, pay_to, sepa_credit_transfer.\n    - Combined (mandate + immediate IBP payment): scheme + amount + currency.\n      Default IBP scheme is inferred from currency. To use a different IBP scheme for the\n      payment than the mandate (e.g. bacs mandate + faster_payments payment), pass\n      payment_request_scheme explicitly.\n    - VRP consent (variable recurring payments, mandate-only on faster_payments):\n      scheme=faster_payments + constraints_max_amount_per_payment + periodic_limit_period +\n      periodic_limit_max_total_amount. For sVRP (sweeping between own accounts) also pass\n      sweeping=true. For cVRP (merchant-initiated) also pass purpose_code,\n      payment_context_code, and payment_purpose_code.\n\n    Currency maps 1:1 to scheme: bacs/faster_payments=GBP, sepa_core/sepa_credit_transfer=EUR,\n    ach=USD, pad=CAD, becs/pay_to=AUD, becs_nz=NZD, autogiro=SEK, betalingsservice=DKK.\n\n    Use create_payment_link (this tool) when: the payer is a specific known customer,\n    the merchant needs VRP (Variable Recurring Payments via faster_payments mandate scheme),\n    or the merchant is building a CPP (Custom Payment Page) flow.\n    Use create_payment_template_link instead when: the merchant wants a permanent reusable\n    link to embed in a website or email for multiple customers (BRT does not support VRP).\n\n    Do NOT ask for redirect_uri unless the merchant mentions a post-payment landing page.\n    Returns an authorisation URL.\n    Requires read_write scope."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_CREATE_PAYMENT_TEMPLATE_LINK",
+        "name": "Create payment template link",
+        "description": "Create a reusable Billing Request Template — a permanent shareable link that creates a new customer session each time it is visited.\n  Also known as: payment template, reusable payment link, shareable payment page.\n\n  Use this tool when the same link will be sent to more than one customer.\n  Use create_payment_link instead if you need VRP, or want to pre-fill a specific returning customer's details.\n\n  Key differences from create_payment_link:\n  - Reusable: the same URL can be visited by unlimited customers; each visit creates a new session.\n  - No specific customer at creation time — the customer provides their details when they visit the link.\n  - Does NOT support VRP (Variable Recurring Payments). faster_payments cannot be used as a mandate scheme.\n  - payment_request_scheme is limited to faster_payments, sepa_credit_transfer, sepa_instant_credit_transfer.\n    pay_to is NOT available as a payment scheme on a BRT.\n  - payment_request_amount is in full decimal form (e.g. \"25.00\"), not minor units.\n\n  Workflows (choose one):\n  - Mandate-only (DD setup only): mandate_request_scheme required; no payment fields.\n    Schemes: bacs, sepa_core, ach, pad, becs, becs_nz, autogiro, betalingsservice, pay_to, sepa_credit_transfer.\n  - Payment-only (one-off IBP payment, no mandate): payment_request_scheme + amount + currency; no mandate fields.\n    Schemes: faster_payments, sepa_credit_transfer, sepa_instant_credit_transfer.\n  - Combined (mandate + one-off IBP payment): both mandate and payment fields.\n\n  Currency maps 1:1 to scheme: bacs=GBP, sepa_core/sepa_credit_transfer=EUR, ach=USD, pad=CAD,\n  becs/pay_to=AUD, becs_nz=NZD, autogiro=SEK, betalingsservice=DKK, faster_payments=GBP.\n\n  Returns a permanent authorisation URL.\n  Requires read_write scope."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_CREATE_REFUND",
+        "name": "Create refund",
+        "description": "Refund all or part of a previously-collected payment back to the payer's bank account.\n    Also known as: issue a refund, send money back, reverse a payment, reimburse a customer.\n\n    Two-call pattern: first call with confirmed=false returns a preview; second call with\n  confirmed=true executes after the user has explicitly confirmed in their next message. DO NOT pass confirmed=true in the same turn as a preview.\n\n  Requirements:\n  - Payment must be in a refundable state: confirmed or paid_out. Pending, failed, cancelled, or charged-back payments cannot be refunded.\n  - amount is in minor units and must be > 0 and <= the payment's remaining refundable amount (payment.amount minus payment.amount_refunded).\n  - Refunds are NOT reversible once submitted.\n\n  Additional pay-svc constraints (will produce 422 if violated):\n  - Safer-refund period: refunds are blocked for 7 days after the payment's charge_date unless the merchant has override permission. Trying to refund a very recent payment will fail —\n  the merchant should wait, or use the GoCardless dashboard if they have refund-override permission.\n  - Negative balance limit: refunds cannot push the creditor's payout balance below their configured negative-balance limit (typically 0). Large refunds against a low payout balance will\n   fail.\n  - Mandate-linked refunds (refunds without a specific payment_id) require the \"Mandate refunds upgrade\" on the organisation. This tool does not support that path — if the merchant needs\n   it, direct them to the GoCardless dashboard.\n\n  Currency is inherited from the payment. Reference is optional and shows on the payer's bank statement where supported (most schemes cap reference at 18 characters).\n\n  One of payment_id (single) or payment_ids (bulk) must be provided.\n\n  Bulk cap: payment_ids accepts up to 10 IDs per call.\n  - If the user explicitly provides ≤ 10 IDs, pass them directly.\n  - If the scope exceeds 10 (e.g. \"refund all failed payments from last month\"), do NOT loop or make multiple sequential calls to work around the cap. Instead: tell the user how many payments match, state the 10-per-call limit, and ask them to confirm which specific subset to process first. Wait for their reply before proceeding.\n  - If multiple batches are needed, process ONE batch per user reply — this means one preview call, then one confirm call, then report and wait. Do not call this tool more than once per user reply even for previews. Never pre-load multiple previews across batches before asking for approval.\n\n  Requires read_write scope. Idempotency keys remain valid for 31 days."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_CREATE_SUBSCRIPTION",
+        "name": "Create subscription",
+        "description": "Create a recurring subscription against a mandate.\n  Also known as: set up recurring payments, set up a direct debit, schedule regular payments.\n\n  Two-call pattern: first call with confirmed=false returns a preview; second call with confirmed=true executes after the user has explicitly confirmed in their next message. DO NOT pass confirmed=true in the same turn as a preview.\n\n  Supported schemes: bacs, sepa_core, ach, becs, becs_nz, betalingsservice, autogiro, pad, pay_to.\n  IBP schemes do not support subscriptions: faster_payments, sepa_credit_transfer, sepa_instant_credit_transfer.\n\n  Scheduling rules:\n  - interval_unit=monthly: day_of_month required (1–28, or -1 for last day of month).\n  - interval_unit=yearly: both month (e.g. january) and day_of_month required.\n  - interval_unit=weekly: day_of_month and month must not be set.\n  - interval defaults to 1 if omitted.\n  - start_date must be on or after the mandate's next_possible_charge_date. Defaults to next_possible_charge_date if omitted.\n\n  payment_reference for Bacs: requires own Service User Number; the mandate reference + dash + payment_reference must be ≤ 18 characters combined.\n  retry_if_possible: requires Success+ to be enabled in the GoCardless dashboard.\n\n  Bulk cap: mandate_ids accepts up to 25 IDs per call (creates the same subscription config for each mandate).\n  - If the user asks to create subscriptions for more than 25 mandates, do NOT call this tool multiple times to work around the cap. Instead: state the 25-per-call limit and ask the user to confirm a specific quantity to proceed with. Wait for their reply before proceeding.\n  - When the requested count exceeds 25, process one batch at a time — preview and confirm the first batch, execute it, then preview and confirm the next batch. Do not preview subsequent batches before the previous one has been confirmed and created.\n\n  Requires read_write scope. Idempotency keys remain valid for 31 days."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_GET_CUSTOMER",
+        "name": "Get customer",
+        "description": "Retrieve a single customer by ID. PII fields are partially masked. Use when you have a known customer ID (CU…). To search or list multiple customers, use list_customers."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_GET_ENVIRONMENT",
+        "name": "Get environment",
+        "description": "Returns the current GoCardless environment (sandbox or live) and step-by-step instructions for switching. Use this when the user asks which environment they are in, wants to switch to live, wants to switch to sandbox, or seems confused about whether they are looking at real or test data."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_GET_MANDATE",
+        "name": "Get mandate",
+        "description": "Retrieve a single mandate (Direct Debit authorisation) by ID. Use when you have a known mandate ID (MD…). To search or filter across mandates, use list_mandates."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_GET_PAYMENT",
+        "name": "Get payment",
+        "description": "Retrieve a single payment by ID. Use when you have a known payment ID (PM…). To search or filter across multiple payments, use list_payments."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_GET_PAYOUT",
+        "name": "Get payout",
+        "description": "Retrieve a single payout (settlement to your bank account) by ID. Use when you have a known payout ID (PO…). To search or filter across payouts, use list_payouts."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_GET_REFUND",
+        "name": "Get refund",
+        "description": "Retrieve a single refund by ID. Use when you have a known refund ID (RF…). To search or filter across refunds, use list_refunds."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_GET_SUBSCRIPTION",
+        "name": "Get subscription",
+        "description": "Retrieve a single subscription (recurring payment schedule) by ID. Use when you have a known subscription ID (SB…). To search or filter across subscriptions, use list_subscriptions."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_INTEGRATE_WITH_GOCARDLESS",
+        "name": "Integrate with gocardless",
+        "description": "Returns an overview of GoCardless integration options for collecting one-off and recurring bank payments. This tool returns an overview only — you MUST then call read_gocardless_resource with the relevant URI from the overview before answering the user's question."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_LIST_CUSTOMERS",
+        "name": "List customers",
+        "description": "List customers, optionally filtered by creation date. PII fields are partially masked. For a single known customer ID, use get_customer."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_LIST_EVENTS",
+        "name": "List events",
+        "description": "Audit log of state changes across all resources (e.g. payment confirmed, mandate cancelled). Use for audit trails and webhook debugging. Not for querying amounts or counts — use list_payments for that. Note: data older than 18 months may not be available."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_LIST_MANDATES",
+        "name": "List mandates",
+        "description": "Search or filter mandates (Direct Debit authorisations) by status, customer, or scheme. For a single known mandate ID, use get_mandate."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_LIST_PAYMENTS",
+        "name": "List payments",
+        "description": "Search, filter, or count payments by status, customer, mandate, subscription, currency, or date range. Use for any multi-record query. For a single known payment ID, use get_payment."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_LIST_PAYOUTS",
+        "name": "List payouts",
+        "description": "Search or filter payouts (settlements to your bank account) by status, currency, or date range. For a single known payout ID, use get_payout."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_LIST_REFUNDS",
+        "name": "List refunds",
+        "description": "Search or filter refunds by payment, mandate, or date range. For a single known refund ID, use get_refund."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_LIST_SUBSCRIPTIONS",
+        "name": "List subscriptions",
+        "description": "Search or filter subscriptions (recurring payment schedules) by status, customer, or mandate. For a single known subscription ID, use get_subscription."
+      },
+      {
+        "slug": "GOCARDLESS_MCP_READ_GOCARDLESS_RESOURCE",
+        "name": "Read gocardless resource",
+        "description": "Serves GoCardless API documentation, how-to guides, and code samples — not live account data. Use this to fetch API endpoint details, integration guides, and code samples. Available URIs:\n- gocardless://api/endpoints — list of all API endpoints\n- gocardless://api/endpoints/{name} — details of a specific endpoint\n- gocardless://api/code_samples/{language} — all code samples for a language (java, python, ruby, dotnet, php, go, javascript, http)\n- gocardless://api/code_samples/{language}/{endpoint} — code samples for a specific endpoint in a language\n- gocardless://how_to/collect_one-off_payments\n- gocardless://how_to/collect_recurring_payments\n- gocardless://how_to/create_reusable_payment_templates\n- gocardless://how_to/handle_webhooks\n- gocardless://how_to/use_billing_request_with_actions\n- gocardless://how_to/use_custom_payment_pages"
+      },
+      {
+        "slug": "GOCARDLESS_MCP_SUBMIT_FEEDBACK",
+        "name": "Submit feedback",
+        "description": "Submit a rating (1–5) of how helpful this MCP session was. Call this at the end of a session when the user expresses satisfaction or dissatisfaction, or when they explicitly ask to leave feedback."
+      }
+    ],
+    "triggers": [],
+    "authConfigDetails": [
+      {
+        "mode": "DCR_OAUTH",
+        "name": "gocardless_mcp_DCR_OAuth",
+        "fields": {
+          "auth_config_creation": {
+            "required": [],
+            "optional": [
+              {
+                "name": "client_id",
+                "displayName": "Client id",
+                "type": "string",
+                "description": "Client id of the app",
+                "required": false,
+                "default": null
+              },
+              {
+                "name": "client_secret",
+                "displayName": "Client secret",
+                "type": "string",
+                "description": "Client secret of the app",
+                "required": false,
+                "default": null
+              },
+              {
+                "name": "oauth_redirect_uri",
+                "displayName": "Redirect URI",
+                "type": "string",
+                "description": "Add this Redirect URL to your app's OAuth allow list.",
+                "required": false,
+                "default": "https://backend.composio.dev/api/v1/auth-apps/add"
+              },
+              {
+                "name": "scopes",
+                "displayName": "Scopes",
+                "type": "string",
+                "description": "Scopes to request from the user, comma separated",
+                "required": false,
+                "default": ""
+              }
+            ]
+          },
+          "connected_account_initiation": {
+            "required": [],
+            "optional": []
+          }
+        }
+      }
+    ]
+  },
+  {
     "slug": "godaddy_mcp",
     "name": "GoDaddy MCP",
     "logo": "https://logos.composio.dev/api/godaddy_mcp",
@@ -251398,7 +251580,7 @@
     ],
     "toolCount": 162,
     "triggerCount": 0,
-    "version": "20260721_00",
+    "version": "20260804_00",
     "tools": [
       {
         "slug": "SHAREPOINT_GRAPH_ADD_CONTENT_TYPE_COLUMN",

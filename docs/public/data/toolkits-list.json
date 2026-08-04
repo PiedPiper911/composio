@@ -4384,6 +4384,14 @@
     "triggerCount": 0
   },
   {
+    "slug": "gocardless_mcp",
+    "name": "GoCardless MCP",
+    "logo": "https://logos.composio.dev/api/gocardless_mcp",
+    "category": "payment processing",
+    "toolCount": 24,
+    "triggerCount": 0
+  },
+  {
     "slug": "godaddy_mcp",
     "name": "GoDaddy MCP",
     "logo": "https://logos.composio.dev/api/godaddy_mcp",
