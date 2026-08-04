@@ -1,5 +1,26 @@
 # @composio/core
 
+## 0.15.0
+
+### Minor Changes
+
+- 1503786: Replace the loose JSON Schema property type with a recursive, type-safe definition.
+
+  `JSONSchemaProperty` (re-exported from `@composio/core` and reachable through
+  `Tool.input_parameters` / `Tool.output_parameters`) is now a concrete recursive
+  interface instead of effectively `any`. Runtime behavior is unchanged, but
+  consumer code that indexed into it without narrowing (for example
+  `schema.properties.foo.type` or `schema.default.someField`) may see new type
+  errors: `properties` entries are now possibly `undefined` and `default` /
+  `enum` values are `unknown`. Narrow with optional chaining or explicit type
+  guards when upgrading.
+
+### Patch Changes
+
+- 5105612: Match sensitive upload path segments using the target filesystem's actual case sensitivity so case-insensitive mounts cannot bypass the denylist without over-blocking distinct paths on case-sensitive mounts.
+- Updated dependencies [1503786]
+  - @composio/json-schema-to-zod@0.2.2
+
 ## 0.14.1
 
 ### Patch Changes
