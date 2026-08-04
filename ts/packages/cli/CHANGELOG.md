@@ -27,6 +27,13 @@
   layer treated the request's own failure as a cache failure and retried it,
   so every failed toolkit, tool, or trigger listing cost two round trips and
   twice the wait before reporting the same error.
+- Resolving a tool's toolkit no longer downloads the toolkit catalog. The CLI
+  ships with the toolkit slugs it knew at build time and remembers any it
+  learns since in `known-toolkit-slugs.json`, so `composio tools execute` only
+  reaches for the catalog when a slug matches nothing it knows — a toolkit
+  released after your CLI version. `FORCE_USE_CACHE` is unaffected.
+- Cache files are now written atomically, so an interrupted run can no longer
+  leave a truncated `toolkits.json` or `tools.json` behind.
 
 ## 0.3.1
 
